@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Гид по местам | Найди лучшие места в городе{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css">
+    <style>
+        :root {
+            --primary-color: #4fe992; /* Основной зеленый цвет */
+            --secondary-color: #3a9461; /* Темный зеленый цвет */
+            --primary-gradient: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 1800px; /* Ограничиваем ширину контента */
+        }
+
+        /* Header styles */
+        .header {
+            background: #4fe992; /* Зеленый фон */
+            color: white;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        /* Логотип */
+        .logo {
+            position: absolute;
+            left: 260px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .search-bar {
+            margin-left: 580px;
+            width: 500px;
+            border: none;
+            outline: none;
+            border-radius: 20px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 50px;
+            left: 580px; /* Согласовано с позицией поисковой строки */
+            width: 500px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #000;
+        }
+
+        .search-results a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+        .search-results a:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Стили для профиля */
+        .profile-container {
+            margin-top: 50px; /* Отступ сверху */
+        }
+
+        .profile-container .user-info {
+            margin-bottom: 20px; /* Отступ между информацией о пользователе и кнопками */
+        }
+
+        .profile-container .btn-group {
+            display: flex;
+            gap: 10px; /* Расстояние между кнопками */
+        }
+
+        /* Категории */
+        .categories {
+            display: flex;
+            gap: 10px;
+            color: white; /* Цвет текста категорий */
+        }
+        .category-link {
+            color: white; /* Цвет ссылок категорий */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .category-link:hover {
+            color: #000; /* Цвет ссылок при наведении */
+        }
+
+        /* Плашка пользователя */
+        .user-menu {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 20px; /* Позиционирование в правом верхнем углу */
+        }
+
+        .user-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .user-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .user-dropdown a:hover {
+            background-color: #f0f0f0;
+        }
+        .user-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .user-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Footer styles */
+        .footer {
+            background: #4fe992; /* Задаем фоновый цвет */
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Place card styles */
+        .place-card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .place-card-img {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .place-card-body {
+            padding: 15px;
+        }
+
+        .place-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .place-card-text {
+            color: #555;
+        }
+
+        .star-rating {
+            color: gold;
+        }
+
+        /* Gradient button */
+        .gradient-button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .gradient-button:hover {
+            background: linear-gradient(to right, #6eeea6, #3a9461); /* Darker gradient on hover */
+        }
+
+        /* Кнопки */
+        .btn-primary {
+            background-color: #4fe992; /* Зеленый цвет */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: darken(#2E7D32, 10%); /* Темнее при наведении */
+        }
+        .btn-outline-light {
+            color: #4fe992; /* Зеленый цвет */
+            border-color: #4fe992;
+            transition: background-color 0.3s ease;
+        }
+        .btn-outline-light:hover {
+            background-color: #008000; /* Темно-зеленый цвет при наведении */
+        }
+
+        /* Стили для формы отзыва */
+        .comment-form {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-form label {
+            font-weight: 500;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .comment-form select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .comment-form .btn-success {
+            background-color: #28a745; /* Зеленый цвет */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .comment-form .btn-success:hover {
+            background-color: darken(#28a745, 10%);
+        }
+
+        /* Стили для рейтинга */
+        #rating-stars input {
+            display: none; /* Скрываем радио-кнопки */
+        }
+
+        #rating-stars label.star {
+            font-size: 24px;
+            color: gray; /* Цвет неактивных звезд */
+            cursor: pointer;
+            margin-right: 5px;
+            transition: color 0.3s ease;
+        }
+
+        #rating-stars input:checked ~ label.star,
+        #rating-stars input:checked ~ label.star ~ label.star {
+            color: gold; /* Цвет активных звезд */
+        }
+        
+        .pagination {
+            margin-top: 20px;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        .pagination .page-link {
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        .pagination .page-link:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <!-- Логотип -->
+            <a href="{% url 'places' %}" class="text-white text-decoration-none logo">
+                My Guide
+            </a>
+            <!-- Поисковая строка -->
+            <form method="get" action="{% url 'places' %}" id="search-form">
+                <input type="text" name="q" placeholder="Поиск..." class="search-bar" id="search-input">
+            </form>
+
+            <!-- Категории -->
+            <div class="categories">
+                <a href="{% url 'places' %}?category=cafe" class="category-link {% if current_category == 'cafe' %}active{% endif %}">
+                    Кафе
+                </a>
+                <a href="{% url 'places' %}?category=restaurant" class="category-link {% if current_category == 'restaurant' %}active{% endif %}">
+                    Рестораны
+                </a>
+            </div>
+            
+            <!-- Плашка пользователя -->
+                        <!-- Плашка пользователя -->
+            <div class="user-menu">
+                {% if user.is_authenticated %}
+                    <!-- Выпадающее меню для авторизованных пользователей -->
+                    <div class="user-icon" id="userIcon">
+                        <i class="mdi mdi-account-circle mdi-24px"></i>
+                    </div>
+                    <div id="userDropdown" class="user-dropdown">
+                        <a href="{% url 'profile' %}">Профиль</a>
+                        <a href="{% url 'logout' %}">Выход</a>
+                    </div>
+                {% else %}
+                    <!-- Кнопка входа для неавторизованных пользователей -->
+                    <div>
+                        <a href="{% url 'login' %}" class="btn btn-outline-light">Войти</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary ms-2">Зарегистрироваться</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            {% block content %}
+            <!-- Content from other templates will be inserted here -->
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        &copy; 2025 Разработано на Django
+    </footer>
+
+    <button id="back-to-top" class="btn btn-primary" style="position: fixed; bottom: 20px; right: 20px; display: none;">
+        <i class="mdi mdi-arrow-up"></i> Наверх
+    </button>
+
+    <!-- Подключение JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === Логика для выпадающего меню пользователя ===
+            const userIcon = document.getElementById('userIcon');
+            const userDropdown = document.getElementById('userDropdown');
+        
+            if (userIcon && userDropdown) {
+                // Открытие/закрытие выпадающего меню
+                userIcon.addEventListener('click', () => {
+                    userDropdown.classList.toggle('show'); // Добавляем/удаляем класс show
+                });
+        
+                // Закрытие меню при клике вне его области
+                document.addEventListener('click', (event) => {
+                    if (!userIcon.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('show'); // Скрываем меню
+                    }
+                });
+            }
+        
+            // === Логика для поиска ===
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+        
+            if (searchInput && searchResults) {
+                // Отправка AJAX-запроса при изменении текста
+                searchInput.addEventListener('input', () => {
+                    const query = searchInput.value.trim();
+                    if (query.length > 0) {
+                        fetch(`/places/search/?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                searchResults.innerHTML = ''; // Очищаем предыдущие результаты
+                                if (data.length > 0) {
+                                    data.forEach(place => {
+                                        const link = document.createElement('a');
+                                        link.href = `/places/${place.id}/`;
+                                        link.textContent = place.title;
+                                        searchResults.appendChild(link);
+                                    });
+                                    searchResults.style.display = 'block'; // Показываем результаты
+                                } else {
+                                    searchResults.style.display = 'none'; // Скрываем, если результатов нет
+                                }
+                            });
+                    } else {
+                        searchResults.style.display = 'none'; // Скрываем, если поле пустое
+                    }
+                });
+        
+                // Скрытие результатов при клике вне поля поиска
+                document.addEventListener('click', (event) => {
+                    if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
+            }
+        
+            // === Логика для рейтинга звездочек ===
+            const stars = document.querySelectorAll('#rating-stars label.star');
+        
+            stars.forEach((star, index) => {
+                star.addEventListener('mouseover', () => {
+                    stars.forEach((s, i) => {
+                        s.style.color = i <= index ? 'gold' : 'gray';
+                    });
+                });
+        
+                star.addEventListener('mouseout', () => {
+                    const selected = document.querySelector('#rating-stars input:checked');
+                    if (!selected) {
+                        stars.forEach((s) => (s.style.color = 'gray'));
+                    } else {
+                        const selectedIndex = Array.from(stars).indexOf(selected.nextElementSibling);
+                        stars.forEach((s, i) => {
+                            s.style.color = i <= selectedIndex ? 'gold' : 'gray';
+                        });
+                    }
+                });
+            });
+
+            // === Логика для кнопки "Наверх" ===
+            const backToTopBtn = document.getElementById('back-to-top');
+
+            window.onscroll = function() {
+                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    backToTopBtn.style.display = 'block';
+                }   else {
+                    backToTopBtn.style.display = 'none';
+                }
+            };
+
+            backToTopBtn.onclick = function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+        });
+        </script>
+</body>
+
+</html>

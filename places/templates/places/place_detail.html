@@ -1,0 +1,200 @@
+{% extends 'places/base.html' %}
+{% block title %}Место: {{ place.title }}{% endblock %}
+{% block content %}
+
+<div class="container py-5">
+    <!-- Блок сообщений -->
+    {% if messages %}
+    <div class="alert alert-success mt-3">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <a href="{% url 'places' %}" class="btn btn-outline-primary mb-3">
+                <i class="mdi mdi-arrow-left"></i> Назад к списку
+            </a>
+            <!-- Place Details -->
+            <h1 class="mb-3 fw-bold">{{ place.title }}</h1>
+            <p class="text-muted">
+                <i class="mdi mdi-map-marker"></i> {{ place.address }}
+            </p>
+            <div class="d-flex mb-3 align-items-center">
+                <div class="rating me-2">
+                    {% for i in "12345" %}
+                        {% if i <= place.average_rating|floatformat:0 %}
+                            <i class="mdi mdi-star"></i>
+                        {% else %}
+                            <i class="mdi mdi-star-outline"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span>{{ place.average_rating|floatformat:1 }} ({{ place.reviews.count }} отзывов)</span>
+            </div>
+            <img src="{{ place.image.url }}" alt="{{ place.title }}" class="img-fluid rounded mb-4">
+            <p class="lead">{{ place.description }}</p>
+            
+            <!-- Comment Section -->
+            <h4 class="mt-5 mb-3 fw-bold">Отзывы</h4>
+            {% for review in place.reviews.all %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ review.user.username }}</h5>
+                    <p class="card-text">{{ review.text }}</p>
+                    <div class="star-rating mb-2">
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= review.rating %}
+                                <i class="mdi mdi-star text-warning"></i>
+                            {% else %}
+                                <i class="mdi mdi-star-outline text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">{{ review.created_at|date:"F Y" }}</small>
+
+                    {% if user.is_staff or review.user == user %}
+                    <form action="{% url 'delete_review' place.id review.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Comment Form -->
+            {% if user.is_authenticated %}
+            <div class="comment-form mt-5">
+                <!-- Блок сообщений -->
+                {% if messages %}
+                <div class="alert alert-success mt-3">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <h5 class="mb-3 fw-bold">Оставить отзыв</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Текст отзыва:</label>
+                        <textarea name="text" class="form-control" rows="4" required id="id_text" style="resize: none;"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Рейтинг:</label>
+                        <div class="star-rating-form">
+                            {% for i in "54321" %}
+                                <input type="radio" id="star{{i}}" name="rating" value="{{i}}" {% if review_form.rating.value == i %}checked{% endif %}>
+                                <label for="star{{i}}"><i class="mdi mdi-star{% if review_form.rating.value != i %}-outline{% endif %}"></i></label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                </form>
+            </div>
+            {% else %}
+            <p>Чтобы оставить отзыв, пожалуйста, <a href="{% url 'login' %}">войдите</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Стили для звезд в отзывах */
+    .star-rating {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+    
+    .star-rating i {
+        color: #ffc107;
+    }
+    
+    /* Стили для звезд в форме */
+    .star-rating-form {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+    
+    .star-rating-form input {
+        display: none;
+    }
+    
+    .star-rating-form label {
+        color: #ddd;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+    
+    .star-rating-form input:checked ~ label {
+        color: #ffc107;
+    }
+    
+    .star-rating-form label:hover,
+    .star-rating-form label:hover ~ label {
+        color: #ffc107;
+    }
+    
+    /* Стили для карточек отзывов */
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .card-text {
+        margin: 10px 0;
+    }
+    
+    .text-muted {
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    // JavaScript для интерактивных звезд
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('.star-rating-form input');
+        stars.forEach(star => {
+            star.addEventListener('change', function() {
+                const rating = this.value;
+                const labels = document.querySelectorAll('.star-rating-form label i');
+                labels.forEach((label, index) => {
+                    if (5 - index <= rating) {
+                        label.classList.remove('mdi-star-outline');
+                        label.classList.add('mdi-star');
+                    } else {
+                        label.classList.remove('mdi-star');
+                        label.classList.add('mdi-star-outline');
+                    }
+                });
+            });
+        });
+
+        // === Логика для кнопки "Наверх" ===
+        const backToTopBtn = document.getElementById('back-to-top');
+
+        window.onscroll = function() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                backToTopBtn.style.display = 'block';
+            }   else {
+                backToTopBtn.style.display = 'none';
+            }
+        };
+
+        backToTopBtn.onclick = function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    });
+</script>
+{% endblock %}
